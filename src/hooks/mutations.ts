@@ -10,7 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 export const usePostTodoMutation = () => {
   const queryClient = useQueryClient();
   const {
-    mutate,
+    mutateAsync,
     data: PostData,
     isSuccess: PostSuccess,
     isPending,
@@ -24,28 +24,34 @@ export const usePostTodoMutation = () => {
     },
   });
 
-  return { mutate, PostData, PostSuccess, isPending };
+  return { mutateAsync, PostData, PostSuccess, isPending };
 };
 
 export const useDeleteTodoMutation = () => {
   const queryClient = useQueryClient();
 
-  const { mutate: deleteTodoMutation, data: deleteResponse } = useMutation({
-    mutationFn: async (id: number) => {
-      let res = await deleteTodo(id);
-      return res;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
-    },
-  });
+  const { mutateAsync: deleteTodoMutation, data: deleteResponse } = useMutation(
+    {
+      mutationFn: async (id: number) => {
+        let res = await deleteTodo(id);
+        return res;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["todos"] });
+      },
+    }
+  );
   return { deleteTodoMutation, deleteResponse };
 };
 
 export const useEditTodoMutation = () => {
   const queryClient = useQueryClient();
 
-  const { mutate: editTodoMutation, data: editResponse } = useMutation({
+  const {
+    mutateAsync: editTodoMutation,
+    data: editResponse,
+    isPending: editPending,
+  } = useMutation({
     mutationFn: async (formdata: EditFormData) => {
       let res = await EditTodo(formdata);
       return res;
@@ -56,13 +62,13 @@ export const useEditTodoMutation = () => {
   });
 
   console.log(editResponse);
-  return { editTodoMutation, editResponse };
+  return { editTodoMutation, editResponse, editPending };
 };
 
 export const useCompleteTodoMutation = () => {
   const queryClient = useQueryClient();
 
-  const { mutate: completeTodoMutation, data: completeTodoResponse } =
+  const { mutateAsync: completeTodoMutation, data: completeTodoResponse } =
     useMutation({
       mutationFn: async (id: number) => {
         let res = await CompleteTodo(id);

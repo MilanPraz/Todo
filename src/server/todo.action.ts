@@ -75,6 +75,8 @@ export const EditTodo = async (formdata: EditTitleParameter) => {
     await connectDB();
     // console.log(id);
     // console.log(title);
+    const singleTodo = await Todo.findById(id);
+    console.log(singleTodo.completed);
 
     const mytodos = await Todo.findByIdAndUpdate(id, { title }, { new: true });
     // console.log(mytodos);

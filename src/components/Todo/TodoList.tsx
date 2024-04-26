@@ -35,10 +35,7 @@ export function TodoList({
         <div className="flex flex-col   w-full gap-4">
           {myTodos?.map((todo, index) => {
             return (
-              <div
-                key={todo._id}
-                className={`${index % 2 == 0 ? "  self-start" : "self-end"}  `}
-              >
+              <div key={todo._id} className={` `}>
                 <TodoCard
                   myTodos={myTodos}
                   todo={todo}
@@ -78,10 +75,10 @@ export function TodoCard({
       <Card className=" w-auto">
         <CardHeader className=" flex  gap-2 flex-row justify-between   items-center">
           <div className=" flex  gap-2">
-            <Checkbox
+            {/* <Checkbox
               checked={todo?.completed}
               onCheckedChange={() => handleCheckChange(todo._id)}
-            />
+            /> */}
             <CardTitle
               className={` ${todo.completed && " line-through"} flex-grow`}
             >
@@ -89,13 +86,13 @@ export function TodoCard({
             </CardTitle>
           </div>
           <div className=" flex gap-2 ml-8 items-center">
-            <div className=" p-[6px] bg-secondary flex items-center justify-center   rounded-lg">
+            <div className=" p-[6px] flex items-center justify-center   rounded-lg">
               <Trash
                 onClick={() => handleDelete(todo?._id)}
                 className=" h-5 w-5  cursor-pointer "
               />
             </div>
-            <div className=" p-[6px] bg-primary  flex items-center justify-center rounded-lg">
+            <div className=" p-[6px]   flex items-center justify-center rounded-lg">
               <DialogTrigger>
                 <Pencil
                   onClick={() =>

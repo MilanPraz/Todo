@@ -1,4 +1,5 @@
 "use client";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
 } from "@/types/todo.type";
 import useTodoQuery from "@/hooks/queries";
 import {
+  useCompleteTodoMutation,
   useDeleteTodoMutation,
   useEditTodoMutation,
   usePostTodoMutation,
@@ -33,6 +35,8 @@ import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { zodSchema } from "../schema/todo.schema";
 import { Loader } from "../common/Loader";
+import { Checkbox } from "../ui/checkbox";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export default function TodoForm() {
   const [editId, setEditId] = useState<number | null>(null);
@@ -42,22 +46,25 @@ export default function TodoForm() {
   const { data: allTodos, error } = useTodoQuery();
 
   // post Mutations
-  const { mutate, PostSuccess, PostData, isPending } = usePostTodoMutation();
+  const { mutateAsync, isPending } = usePostTodoMutation();
   console.log(isPending);
   // delete mutation
-  const { deleteTodoMutation, deleteResponse } = useDeleteTodoMutation();
+  const { deleteTodoMutation } = useDeleteTodoMutation();
 
+  const [open, setOpen] = useState(false);
+  const [editInitiate, setEditInitiate] = useState(false);
   // edit mutation
-  const { editTodoMutation, editResponse } = useEditTodoMutation();
+  const { editTodoMutation, editPending } = useEditTodoMutation();
 
   //submit form
   async function FormhandleSubmit(data: z.infer<typeof zodSchema>) {
     console.log(data);
-    mutate({
+    let res = await mutateAsync({
       title: data.title!,
       completed: false,
     });
-    if (PostSuccess) {
+    console.log(res);
+    if (res?.success) {
       reset();
       toast.success("Successfully Added");
     }
@@ -65,10 +72,9 @@ export default function TodoForm() {
 
   async function handleDelete(id: number) {
     console.log(id);
-    const res = deleteTodoMutation(id);
+    const res = await deleteTodoMutation(id);
     console.log(res);
-    console.log(deleteResponse);
-    deleteResponse?.success && toast.error("Successfully Deleted");
+    res?.success && toast.success("Successfully Deleted");
   }
 
   function handleEdit(editData: EditTitleParameter) {
@@ -77,11 +83,12 @@ export default function TodoForm() {
   }
 
   async function handleEditTitle() {
-    const res = editTodoMutation({
+    const res = await editTodoMutation({
       id: editId!,
       title: editTitle!,
     });
-    editResponse && toast.success("Edited Successfully!!");
+    console.log(res);
+    res.success && toast.success("Edited Successfully!!");
   }
 
   //reacthook form44
@@ -94,9 +101,18 @@ export default function TodoForm() {
     resolver: zodResolver(zodSchema),
   });
 
+  const { completeTodoMutation, completeTodoResponse } =
+    useCompleteTodoMutation();
+
+  async function handleCheckChange(id: number) {
+    const res = await completeTodoMutation(id);
+    console.log(res);
+  }
+  console.log(editTitle);
+
   return (
     <>
-      <div className=" mt-4 w-[950px]">
+      <div className=" mt-4 w-[550px]">
         <form
           onSubmit={handleSubmit(FormhandleSubmit)}
           className=" w-full flex items-center gap-2"
@@ -105,7 +121,7 @@ export default function TodoForm() {
           <Input
             {...register("title")}
             type="text"
-            placeholder="your todo here..."
+            placeholder="Add a new task"
           />
           <button type="submit" className=" bg-primary p-2 rounded-lg">
             {isPending ? (
@@ -120,8 +136,11 @@ export default function TodoForm() {
         </div>
       </div>
       {/* ALL YOUR TODOS */}
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen}>
         <div className={`  mt-8  relative`}>
+          <h3 className=" text-white mb-4">
+            Task to do - {allTodos?.data?.length}
+          </h3>
           <TodoList
             myTodos={allTodos?.data!}
             handleDelete={handleDelete}
@@ -134,24 +153,53 @@ export default function TodoForm() {
             <DialogTitle>Edit Todo</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className=" items-center ">
               <Label htmlFor="name" className="text-right">
                 Your Todo
               </Label>
               <Input
-                id="name"
+                id="title"
+                // {...register("title")}
                 value={editTitle!}
-                onChange={(e) => setEditTitle(e.target.value)}
+                onChange={(e) => {
+                  let edit = editTitle !== e.target.value;
+                  console.log(edit);
+                  if (edit) {
+                    setEditInitiate(true);
+                  }
+                  setEditTitle(e.target.value);
+                }}
                 className="col-span-3"
               />
             </div>
+            <div className="flex items-center gap-4 ">
+              <Label>Have you completed?</Label>
+              <Checkbox
+                className=" bg-white"
+                // checked={todo?.completed}
+                onCheckedChange={() => handleCheckChange(editId!)}
+              />
+            </div>
+            <div>
+              <small className=" text-secondary">
+                {errors?.title?.message}
+              </small>
+            </div>
           </div>
           <DialogFooter>
-            <DialogTrigger>
-              <Button onClick={handleEditTitle} type="submit">
-                Save changes
-              </Button>
-            </DialogTrigger>
+            <Button
+              onClick={async () => {
+                await handleEditTitle();
+                if (!editPending) {
+                  setOpen(false);
+                }
+              }}
+              type="submit"
+              className={``}
+              disabled={!editInitiate}
+            >
+              {editPending ? <Loader /> : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

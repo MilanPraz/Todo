@@ -3,7 +3,11 @@ import { getTodos } from "@/server/todo.action";
 import { useQuery } from "@tanstack/react-query";
 
 const useTodoQuery = () => {
-  const { data, error } = useQuery({
+  const {
+    data,
+    error,
+    isPending: todosLoading,
+  } = useQuery({
     queryKey: ["todos"],
     queryFn: async () => {
       const res = await getTodos();
@@ -11,7 +15,7 @@ const useTodoQuery = () => {
     },
   });
 
-  return { data, error };
+  return { data, error, todosLoading };
 };
 
 export default useTodoQuery;

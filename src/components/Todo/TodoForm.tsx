@@ -1,5 +1,4 @@
 "use client";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,23 +35,23 @@ import toast from "react-hot-toast";
 import { zodSchema } from "../schema/todo.schema";
 import { Loader } from "../common/Loader";
 import { Checkbox } from "../ui/checkbox";
-import { DialogClose } from "@radix-ui/react-dialog";
+import { Skeleton } from "../ui/skeleton";
 
 export default function TodoForm() {
   const [editId, setEditId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState<string | null>(null);
+  const [open, setOpen] = useState<boolean>(false);
+  const [editInitiate, setEditInitiate] = useState<boolean>(false);
 
   // Queries
-  const { data: allTodos, error } = useTodoQuery();
+  const { data: allTodos, error, todosLoading } = useTodoQuery();
 
   // post Mutations
   const { mutateAsync, isPending } = usePostTodoMutation();
-  console.log(isPending);
+  // console.log(isPending);
   // delete mutation
-  const { deleteTodoMutation } = useDeleteTodoMutation();
+  const { deleteTodoMutation, deleteLoading } = useDeleteTodoMutation();
 
-  const [open, setOpen] = useState(false);
-  const [editInitiate, setEditInitiate] = useState(false);
   // edit mutation
   const { editTodoMutation, editPending } = useEditTodoMutation();
 
@@ -108,11 +107,11 @@ export default function TodoForm() {
     const res = await completeTodoMutation(id);
     console.log(res);
   }
-  console.log(editTitle);
+  // console.log(editTitle);
 
   return (
     <>
-      <div className=" mt-4 w-[550px]">
+      <div className=" mt-4  w-full">
         <form
           onSubmit={handleSubmit(FormhandleSubmit)}
           className=" w-full flex items-center gap-2"
@@ -123,7 +122,11 @@ export default function TodoForm() {
             type="text"
             placeholder="Add a new task"
           />
-          <button type="submit" className=" bg-primary p-2 rounded-lg">
+          <button
+            disabled={isPending}
+            type="submit"
+            className=" bg-primary p-2 rounded-lg"
+          >
             {isPending ? (
               <Loader />
             ) : (
@@ -142,6 +145,8 @@ export default function TodoForm() {
             Task to do - {allTodos?.data?.length}
           </h3>
           <TodoList
+            deleteLoading={deleteLoading}
+            todosLoading={todosLoading}
             myTodos={allTodos?.data!}
             handleDelete={handleDelete}
             handleEdit={handleEdit}

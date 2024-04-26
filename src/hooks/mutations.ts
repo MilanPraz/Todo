@@ -30,7 +30,7 @@ export const usePostTodoMutation = () => {
 export const useDeleteTodoMutation = () => {
   const queryClient = useQueryClient();
 
-  const { mutateAsync: deleteTodoMutation, data: deleteResponse } = useMutation(
+  const { mutateAsync: deleteTodoMutation, data: deleteResponse,isPending:deleteLoading } = useMutation(
     {
       mutationFn: async (id: number) => {
         let res = await deleteTodo(id);
@@ -41,7 +41,7 @@ export const useDeleteTodoMutation = () => {
       },
     }
   );
-  return { deleteTodoMutation, deleteResponse };
+  return { deleteTodoMutation, deleteResponse, deleteLoading };
 };
 
 export const useEditTodoMutation = () => {
